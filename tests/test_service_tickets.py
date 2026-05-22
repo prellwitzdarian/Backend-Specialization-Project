@@ -38,6 +38,29 @@ class TestServiceTickets(unittest.TestCase):
         resp3 = self.client.put(f'/service-tickets/{ticket_id}/add-part/{self.part_id}', headers=headers_mech)
         self.assertEqual(resp3.status_code, 200)
 
+    def test_get_service_tickets_list(self):
+        with self.app.app_context():
+            ticket = Service_tickets(customer_id=self.customer_id, service_date='2026-01-02', issue_description='noise', vin='VIN2')
+            db.session.add(ticket)
+            db.session.commit()
+        resp = self.client.get('/service-tickets/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIsInstance(resp.json, list)
+
+    def test_remove_mechanic_from_ticket(self):
+        with self.app.app_context():
+            ticket = Service_tickets(customer_id=self.customer_id, service_date='2026-01-03', issue_description='brake check', vin='VIN3')
+            db.session.add(ticket)
+            db.session.commit()
+            tid = ticket.id
+        headers_mech = {'Authorization': 'Bearer ' + self.mech_token}
+        resp_assign = self.client.put(f'/service-tickets/{tid}/assign-mechanic/{self.mechanic_id}', headers=headers_mech)
+        self.assertEqual(resp_assign.status_code, 200)
+        resp_remove = self.client.put(f'/service-tickets/{tid}/remove-mechanic/{self.mechanic_id}', headers=headers_mech)
+        self.assertEqual(resp_remove.status_code, 200)
+        self.assertEqual(resp_remove.json['id'], tid)
+        self.assertEqual(resp_remove.json['customer_id'], self.customer_id)
+
     def test_get_and_edit_ticket(self):
         # create ticket directly
         with self.app.app_context():

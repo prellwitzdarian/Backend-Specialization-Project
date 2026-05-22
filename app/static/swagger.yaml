@@ -1,8 +1,8 @@
-swagger: "2.0"
+﻿swagger: "2.0"
 info:
   title: "Mechanic Shop API"
   version: "1.0.0"
-  description: "API for managing customers, mechanics, service tickets and inventory."
+  description: "API for managing customers, mechanics, service tickets, and inventory in a mechanic shop."
 host: "127.0.0.1:5000"
 schemes:
   - http
@@ -23,9 +23,11 @@ paths:
       tags:
         - customers
       summary: "Customer login"
+      description: "Authenticate a customer and issue a bearer token for protected customer actions."
       parameters:
         - in: body
           name: credentials
+          description: "Customer email and password credentials"
           required: true
           schema:
             $ref: "#/definitions/LoginCredentials"
@@ -34,37 +36,64 @@ paths:
           description: Login successful
           schema:
             $ref: "#/definitions/LoginResponse"
+          examples:
+            application/json:
+              status: success
+              token: "eyJh..."
+        400:
+          description: Validation error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        401:
+          description: Invalid login credentials
+          schema:
+            $ref: "#/definitions/ErrorResponse"
 
   /customers:
     post:
       tags:
         - customers
       summary: Create a new customer
+      description: "Register a new customer account for the mechanic shop service."
       parameters:
         - in: body
           name: customer
+          description: "New customer payload"
           required: true
           schema:
             $ref: "#/definitions/CustomerInput"
       responses:
         201:
-          description: Created
+          description: Customer created successfully
           schema:
             $ref: "#/definitions/Customer"
+          examples:
+            application/json:
+              id: 1
+              name: "John Doe"
+              email: "john@example.com"
+              phone: "555-555-5555"
+        400:
+          description: Validation or duplicate email error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
     get:
       tags:
         - customers
       summary: List customers (paginated)
+      description: "Retrieve a paginated list of registered customers."
       parameters:
         - in: query
           name: page
           type: integer
+          description: "Page number"
         - in: query
           name: per_page
           type: integer
+          description: "Number of customers per page"
       responses:
         200:
-          description: OK
+          description: Customers list returned successfully
           schema:
             type: object
             properties:
@@ -78,12 +107,23 @@ paths:
                 type: integer
               pages:
                 type: integer
+          examples:
+            application/json:
+              customers:
+                - id: 1
+                  name: "John Doe"
+                  email: "john@example.com"
+                  phone: "555-555-5555"
+              total: 1
+              page: 1
+              pages: 1
 
   /customers/{customer_id}:
     get:
       tags:
         - customers
       summary: Get a single customer
+      description: "Retrieve a customer profile by ID."
       parameters:
         - in: path
           name: customer_id
@@ -91,15 +131,18 @@ paths:
           type: integer
       responses:
         200:
-          description: OK
+          description: Customer retrieved successfully
           schema:
             $ref: "#/definitions/Customer"
         404:
-          description: Not Found
+          description: Customer not found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
     put:
       tags:
         - customers
       summary: Update a customer (authenticated)
+      description: "Update a customer's profile. Requires a valid customer bearer token."
       security:
         - bearerAuth: []
       parameters:
@@ -109,20 +152,32 @@ paths:
           type: integer
         - in: body
           name: customer
+          description: "Customer fields to update"
           required: true
           schema:
             $ref: "#/definitions/CustomerInput"
       responses:
         200:
-          description: Updated
+          description: Customer updated successfully
           schema:
             $ref: "#/definitions/Customer"
+        400:
+          description: Validation error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
         403:
-          description: Unauthorized
+          description: Unauthorized access
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        404:
+          description: Customer not found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
     delete:
       tags:
         - customers
       summary: Delete a customer (authenticated)
+      description: "Delete the authenticated customer's account. Requires a valid bearer token."
       security:
         - bearerAuth: []
       parameters:
@@ -132,36 +187,48 @@ paths:
           type: integer
       responses:
         200:
-          description: Deleted
+          description: Customer deleted successfully
           schema:
-            type: object
-            properties:
-              message:
-                type: string
+            $ref: "#/definitions/MessageResponse"
+        403:
+          description: Unauthorized access
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        404:
+          description: Customer not found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
 
   /customers/my-tickets:
     get:
       tags:
         - customers
       summary: Get tickets for authenticated customer
+      description: "Retrieve service tickets for the currently authenticated customer."
       security:
         - bearerAuth: []
       responses:
         200:
-          description: OK
+          description: Tickets returned successfully
           schema:
             type: array
             items:
               $ref: "#/definitions/ServiceTicket"
+        401:
+          description: Missing or invalid token
+          schema:
+            $ref: "#/definitions/ErrorResponse"
 
   /mechanics/login:
     post:
       tags:
         - mechanics
       summary: Mechanic login
+      description: "Authenticate a mechanic and return a bearer token for protected mechanic actions."
       parameters:
         - in: body
           name: credentials
+          description: "Mechanic email and password credentials"
           required: true
           schema:
             $ref: "#/definitions/LoginCredentials"
@@ -170,37 +237,50 @@ paths:
           description: Login successful
           schema:
             $ref: "#/definitions/LoginResponse"
+        401:
+          description: Invalid login credentials
+          schema:
+            $ref: "#/definitions/ErrorResponse"
 
   /mechanics:
     post:
       tags:
         - mechanics
       summary: Create mechanic
+      description: "Register a new mechanic account."
       parameters:
         - in: body
           name: mechanic
+          description: "Mechanic payload"
           required: true
           schema:
             $ref: "#/definitions/MechanicInput"
       responses:
         201:
-          description: Created
+          description: Mechanic created successfully
           schema:
             $ref: "#/definitions/Mechanic"
+        400:
+          description: Validation or duplicate email error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
     get:
       tags:
         - mechanics
       summary: List mechanics (paginated)
+      description: "Retrieve a paginated list of mechanics."
       parameters:
         - in: query
           name: page
           type: integer
+          description: "Page number"
         - in: query
           name: per_page
           type: integer
+          description: "Number of mechanics per page"
       responses:
         200:
-          description: OK
+          description: Mechanics list returned successfully
           schema:
             type: object
             properties:
@@ -220,6 +300,7 @@ paths:
       tags:
         - mechanics
       summary: Update mechanic (authenticated)
+      description: "Update a mechanic account. Requires a valid mechanic bearer token."
       security:
         - bearerAuth: []
       parameters:
@@ -229,18 +310,32 @@ paths:
           type: integer
         - in: body
           name: mechanic
+          description: "Mechanic fields to update"
           required: true
           schema:
             $ref: "#/definitions/MechanicInput"
       responses:
         200:
-          description: Updated
+          description: Mechanic updated successfully
           schema:
             $ref: "#/definitions/Mechanic"
+        400:
+          description: Validation error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        403:
+          description: Unauthorized access
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        404:
+          description: Mechanic not found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
     delete:
       tags:
         - mechanics
       summary: Delete mechanic (authenticated)
+      description: "Delete a mechanic account. Requires a valid mechanic bearer token."
       security:
         - bearerAuth: []
       parameters:
@@ -250,21 +345,27 @@ paths:
           type: integer
       responses:
         200:
-          description: Deleted
+          description: Mechanic deleted successfully
           schema:
-            type: object
-            properties:
-              message:
-                type: string
+            $ref: "#/definitions/MessageResponse"
+        403:
+          description: Unauthorized access
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        404:
+          description: Mechanic not found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
 
   /mechanics/popular:
     get:
       tags:
         - mechanics
       summary: List mechanics ordered by number of tickets
+      description: "Return mechanics sorted by the number of service tickets assigned."
       responses:
         200:
-          description: OK
+          description: Popular mechanics list returned successfully
           schema:
             type: array
             items:
@@ -275,13 +376,15 @@ paths:
       tags:
         - mechanics
       summary: Search mechanics by name
+      description: "Search mechanics by a partial name match."
       parameters:
         - in: query
           name: name
           type: string
+          description: "Mechanic name or partial name to search"
       responses:
         200:
-          description: OK
+          description: Search results returned successfully
           schema:
             type: array
             items:
@@ -292,26 +395,33 @@ paths:
       tags:
         - inventory
       summary: Create inventory part (mechanic only)
+      description: "Add a new inventory part. Requires a valid mechanic bearer token."
       security:
         - bearerAuth: []
       parameters:
         - in: body
           name: part
+          description: "Inventory part data"
           required: true
           schema:
             $ref: "#/definitions/InventoryInput"
       responses:
         201:
-          description: Created
+          description: Inventory part created successfully
           schema:
             $ref: "#/definitions/Inventory"
+        400:
+          description: Validation or duplicate part error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
     get:
       tags:
         - inventory
       summary: List inventory parts
+      description: "Retrieve a list of inventory parts available in the shop."
       responses:
         200:
-          description: OK
+          description: Inventory list returned successfully
           schema:
             type: array
             items:
@@ -322,6 +432,7 @@ paths:
       tags:
         - inventory
       summary: Get an inventory item
+      description: "Retrieve a single inventory item by ID."
       parameters:
         - in: path
           name: inventory_id
@@ -329,15 +440,18 @@ paths:
           type: integer
       responses:
         200:
-          description: OK
+          description: Inventory part retrieved successfully
           schema:
             $ref: "#/definitions/Inventory"
         404:
-          description: Not Found
+          description: Inventory part not found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
     put:
       tags:
         - inventory
       summary: Update inventory part (mechanic only)
+      description: "Update an inventory part's details. Requires a valid mechanic bearer token."
       security:
         - bearerAuth: []
       parameters:
@@ -347,18 +461,28 @@ paths:
           type: integer
         - in: body
           name: part
+          description: "Updated inventory payload"
           required: true
           schema:
             $ref: "#/definitions/InventoryInput"
       responses:
         200:
-          description: Updated
+          description: Inventory part updated successfully
           schema:
             $ref: "#/definitions/Inventory"
+        400:
+          description: Validation error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        404:
+          description: Inventory part not found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
     delete:
       tags:
         - inventory
       summary: Delete inventory part (mechanic only)
+      description: "Remove an inventory part from the shop. Requires a valid mechanic bearer token."
       security:
         - bearerAuth: []
       parameters:
@@ -368,38 +492,46 @@ paths:
           type: integer
       responses:
         200:
-          description: Deleted
+          description: Inventory part deleted successfully
           schema:
-            type: object
-            properties:
-              message:
-                type: string
+            $ref: "#/definitions/MessageResponse"
+        404:
+          description: Inventory part not found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
 
   /service-tickets:
     post:
       tags:
         - service-tickets
       summary: Create a new service ticket (customer)
+      description: "Create a service ticket for the authenticated customer. Requires a customer bearer token."
       security:
         - bearerAuth: []
       parameters:
         - in: body
           name: ticket
+          description: "New service ticket payload"
           required: true
           schema:
             $ref: "#/definitions/ServiceTicketInput"
       responses:
         201:
-          description: Created
+          description: Service ticket created successfully
           schema:
             $ref: "#/definitions/ServiceTicket"
+        400:
+          description: Validation error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
     get:
       tags:
         - service-tickets
       summary: List all service tickets
+      description: "Retrieve all service tickets in the system."
       responses:
         200:
-          description: OK
+          description: Service tickets list returned successfully
           schema:
             type: array
             items:
@@ -410,6 +542,7 @@ paths:
       tags:
         - service-tickets
       summary: Get a service ticket
+      description: "Retrieve a service ticket by its ID."
       parameters:
         - in: path
           name: ticket_id
@@ -417,17 +550,20 @@ paths:
           type: integer
       responses:
         200:
-          description: OK
+          description: Service ticket retrieved successfully
           schema:
             $ref: "#/definitions/ServiceTicket"
         404:
-          description: Not Found
+          description: Service ticket not found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
 
   /service-tickets/{ticket_id}/assign-mechanic/{mechanic_id}:
     put:
       tags:
         - service-tickets
       summary: Assign a mechanic to a ticket (mechanic only)
+      description: "Assign a mechanic to a service ticket. Requires a valid mechanic bearer token."
       security:
         - bearerAuth: []
       parameters:
@@ -441,15 +577,20 @@ paths:
           type: integer
       responses:
         200:
-          description: Updated
+          description: Mechanic assigned successfully
           schema:
             $ref: "#/definitions/ServiceTicket"
+        404:
+          description: Ticket or mechanic not found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
 
   /service-tickets/{ticket_id}/remove-mechanic/{mechanic_id}:
     put:
       tags:
         - service-tickets
       summary: Remove a mechanic from a ticket (mechanic only)
+      description: "Remove an assigned mechanic from a service ticket. Requires a valid mechanic bearer token."
       security:
         - bearerAuth: []
       parameters:
@@ -463,15 +604,20 @@ paths:
           type: integer
       responses:
         200:
-          description: Updated
+          description: Mechanic removed successfully
           schema:
             $ref: "#/definitions/ServiceTicket"
+        404:
+          description: Ticket or mechanic not found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
 
   /service-tickets/{ticket_id}/edit:
     put:
       tags:
         - service-tickets
       summary: Edit a service ticket's mechanics list (mechanic only)
+      description: "Add or remove mechanics on a service ticket. Requires a valid mechanic bearer token."
       security:
         - bearerAuth: []
       parameters:
@@ -481,20 +627,30 @@ paths:
           type: integer
         - in: body
           name: edits
+          description: "Mechanic assignment edits"
           required: true
           schema:
             $ref: "#/definitions/EditServiceTicket"
       responses:
         200:
-          description: Updated
+          description: Service ticket updated successfully
           schema:
             $ref: "#/definitions/ServiceTicket"
+        400:
+          description: Validation error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        404:
+          description: Service ticket not found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
 
   /service-tickets/{ticket_id}/add-part/{inventory_id}:
     put:
       tags:
         - service-tickets
       summary: Add an inventory part to a ticket (mechanic only)
+      description: "Attach an inventory part to a service ticket. Requires a valid mechanic bearer token."
       security:
         - bearerAuth: []
       parameters:
@@ -508,9 +664,13 @@ paths:
           type: integer
       responses:
         200:
-          description: Updated
+          description: Part added to ticket successfully
           schema:
             $ref: "#/definitions/ServiceTicket"
+        404:
+          description: Ticket or inventory part not found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
 
 definitions:
   LoginCredentials:
@@ -523,6 +683,9 @@ definitions:
     required:
       - email
       - password
+    example:
+      email: "user@example.com"
+      password: "password123"
 
   LoginResponse:
     type: object
@@ -531,6 +694,25 @@ definitions:
         type: string
       token:
         type: string
+    example:
+      status: "success"
+      token: "eyJh..."
+
+  ErrorResponse:
+    type: object
+    properties:
+      message:
+        type: string
+    example:
+      message: "Invalid token"
+
+  MessageResponse:
+    type: object
+    properties:
+      message:
+        type: string
+    example:
+      message: "Customer id: 1 successfully deleted."
 
   Customer:
     type: object
@@ -543,6 +725,11 @@ definitions:
         type: string
       phone:
         type: string
+    example:
+      id: 1
+      name: "John Doe"
+      email: "john@example.com"
+      phone: "555-555-5555"
 
   CustomerInput:
     type: object
@@ -560,6 +747,11 @@ definitions:
       - email
       - phone
       - password
+    example:
+      name: "John Doe"
+      email: "john@example.com"
+      phone: "555-555-5555"
+      password: "password123"
 
   Mechanic:
     type: object
@@ -574,6 +766,12 @@ definitions:
         type: string
       salary:
         type: number
+    example:
+      id: 1
+      name: "Sam Mechanic"
+      email: "sam@example.com"
+      phone: "555-123-4567"
+      salary: 45.0
 
   MechanicInput:
     type: object
@@ -594,6 +792,12 @@ definitions:
       - phone
       - salary
       - password
+    example:
+      name: "Sam Mechanic"
+      email: "sam@example.com"
+      phone: "555-123-4567"
+      salary: 45.0
+      password: "password123"
 
   Inventory:
     type: object
@@ -604,6 +808,10 @@ definitions:
         type: string
       price:
         type: number
+    example:
+      id: 1
+      name: "Brake Pad"
+      price: 29.99
 
   InventoryInput:
     type: object
@@ -615,6 +823,9 @@ definitions:
     required:
       - name
       - price
+    example:
+      name: "Brake Pad"
+      price: 29.99
 
   ServiceTicket:
     type: object
@@ -637,6 +848,22 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/Inventory"
+    example:
+      id: 1
+      customer_id: 1
+      service_date: "2026-01-01"
+      issue_description: "Brake noise"
+      vin: "1HGCM82633A004352"
+      mechanics:
+        - id: 1
+          name: "Sam Mechanic"
+          email: "sam@example.com"
+          phone: "555-123-4567"
+          salary: 45.0
+      parts:
+        - id: 1
+          name: "Brake Pad"
+          price: 29.99
 
   ServiceTicketInput:
     type: object
@@ -651,6 +878,10 @@ definitions:
       - service_date
       - issue_description
       - vin
+    example:
+      service_date: "2026-01-01"
+      issue_description: "Brake noise"
+      vin: "1HGCM82633A004352"
 
   EditServiceTicket:
     type: object
@@ -664,3 +895,8 @@ definitions:
         items:
           type: integer
     additionalProperties: false
+    example:
+      add_mechanic_ids:
+        - 2
+      remove_mechanic_ids:
+        - 3

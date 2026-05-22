@@ -23,9 +23,4 @@ class ProductionConfig:
     CACHE_TYPE = 'SimpleCache'
     CACHE_DEFAULT_TIMEOUT = 300
     RATELIMIT_DEFAULT = '200 per day;50 per hour'
-
-class TestingConfig:
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///testing.db'
-    DEBUG = True
-    CACHE_TYPE = 'SimpleCache'
     

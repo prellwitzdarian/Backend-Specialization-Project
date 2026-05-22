@@ -22,6 +22,11 @@ class TestMechanics(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.json['name'], 'New Mech')
 
+    def test_get_mechanics_list(self):
+        response = self.client.get('/mechanics/')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('mechanics', response.json)
+
     def test_mechanic_login(self):
         creds = {'email': 'mech@email.com', 'password': 'pw'}
         response = self.client.post('/mechanics/login', json=creds)

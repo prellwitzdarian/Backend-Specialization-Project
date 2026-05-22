@@ -46,6 +46,17 @@ class TestCustomers(unittest.TestCase):
         self.assertEqual(response.json['status'], 'success')
         self.assertIn('token', response.json)
 
+    def test_get_customers_list(self):
+        response = self.client.get('/customers/')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('customers', response.json)
+        self.assertEqual(response.json['total'], 1)
+
+    def test_get_customer_by_id(self):
+        response = self.client.get(f'/customers/{self.customer_id}')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json['email'], 'test@email.com')
+
     def test_invalid_login(self):
         credentials = {'email': 'bad@email.com', 'password': 'bad'}
         response = self.client.post('/customers/login', json=credentials)
