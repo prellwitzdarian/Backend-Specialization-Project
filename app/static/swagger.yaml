@@ -1,0 +1,666 @@
+swagger: "2.0"
+info:
+  title: "Mechanic Shop API"
+  version: "1.0.0"
+  description: "API for managing customers, mechanics, service tickets and inventory."
+host: "127.0.0.1:5000"
+schemes:
+  - http
+consumes:
+  - application/json
+produces:
+  - application/json
+
+securityDefinitions:
+  bearerAuth:
+    type: apiKey
+    name: Authorization
+    in: header
+
+paths:
+  /customers/login:
+    post:
+      tags:
+        - customers
+      summary: "Customer login"
+      parameters:
+        - in: body
+          name: credentials
+          required: true
+          schema:
+            $ref: "#/definitions/LoginCredentials"
+      responses:
+        200:
+          description: Login successful
+          schema:
+            $ref: "#/definitions/LoginResponse"
+
+  /customers:
+    post:
+      tags:
+        - customers
+      summary: Create a new customer
+      parameters:
+        - in: body
+          name: customer
+          required: true
+          schema:
+            $ref: "#/definitions/CustomerInput"
+      responses:
+        201:
+          description: Created
+          schema:
+            $ref: "#/definitions/Customer"
+    get:
+      tags:
+        - customers
+      summary: List customers (paginated)
+      parameters:
+        - in: query
+          name: page
+          type: integer
+        - in: query
+          name: per_page
+          type: integer
+      responses:
+        200:
+          description: OK
+          schema:
+            type: object
+            properties:
+              customers:
+                type: array
+                items:
+                  $ref: "#/definitions/Customer"
+              total:
+                type: integer
+              page:
+                type: integer
+              pages:
+                type: integer
+
+  /customers/{customer_id}:
+    get:
+      tags:
+        - customers
+      summary: Get a single customer
+      parameters:
+        - in: path
+          name: customer_id
+          required: true
+          type: integer
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/Customer"
+        404:
+          description: Not Found
+    put:
+      tags:
+        - customers
+      summary: Update a customer (authenticated)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: customer_id
+          required: true
+          type: integer
+        - in: body
+          name: customer
+          required: true
+          schema:
+            $ref: "#/definitions/CustomerInput"
+      responses:
+        200:
+          description: Updated
+          schema:
+            $ref: "#/definitions/Customer"
+        403:
+          description: Unauthorized
+    delete:
+      tags:
+        - customers
+      summary: Delete a customer (authenticated)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: customer_id
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Deleted
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+
+  /customers/my-tickets:
+    get:
+      tags:
+        - customers
+      summary: Get tickets for authenticated customer
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/ServiceTicket"
+
+  /mechanics/login:
+    post:
+      tags:
+        - mechanics
+      summary: Mechanic login
+      parameters:
+        - in: body
+          name: credentials
+          required: true
+          schema:
+            $ref: "#/definitions/LoginCredentials"
+      responses:
+        200:
+          description: Login successful
+          schema:
+            $ref: "#/definitions/LoginResponse"
+
+  /mechanics:
+    post:
+      tags:
+        - mechanics
+      summary: Create mechanic
+      parameters:
+        - in: body
+          name: mechanic
+          required: true
+          schema:
+            $ref: "#/definitions/MechanicInput"
+      responses:
+        201:
+          description: Created
+          schema:
+            $ref: "#/definitions/Mechanic"
+    get:
+      tags:
+        - mechanics
+      summary: List mechanics (paginated)
+      parameters:
+        - in: query
+          name: page
+          type: integer
+        - in: query
+          name: per_page
+          type: integer
+      responses:
+        200:
+          description: OK
+          schema:
+            type: object
+            properties:
+              mechanics:
+                type: array
+                items:
+                  $ref: "#/definitions/Mechanic"
+              total:
+                type: integer
+              page:
+                type: integer
+              pages:
+                type: integer
+
+  /mechanics/{mechanic_id}:
+    put:
+      tags:
+        - mechanics
+      summary: Update mechanic (authenticated)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: mechanic_id
+          required: true
+          type: integer
+        - in: body
+          name: mechanic
+          required: true
+          schema:
+            $ref: "#/definitions/MechanicInput"
+      responses:
+        200:
+          description: Updated
+          schema:
+            $ref: "#/definitions/Mechanic"
+    delete:
+      tags:
+        - mechanics
+      summary: Delete mechanic (authenticated)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: mechanic_id
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Deleted
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+
+  /mechanics/popular:
+    get:
+      tags:
+        - mechanics
+      summary: List mechanics ordered by number of tickets
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Mechanic"
+
+  /mechanics/search:
+    get:
+      tags:
+        - mechanics
+      summary: Search mechanics by name
+      parameters:
+        - in: query
+          name: name
+          type: string
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Mechanic"
+
+  /inventory:
+    post:
+      tags:
+        - inventory
+      summary: Create inventory part (mechanic only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: body
+          name: part
+          required: true
+          schema:
+            $ref: "#/definitions/InventoryInput"
+      responses:
+        201:
+          description: Created
+          schema:
+            $ref: "#/definitions/Inventory"
+    get:
+      tags:
+        - inventory
+      summary: List inventory parts
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Inventory"
+
+  /inventory/{inventory_id}:
+    get:
+      tags:
+        - inventory
+      summary: Get an inventory item
+      parameters:
+        - in: path
+          name: inventory_id
+          required: true
+          type: integer
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/Inventory"
+        404:
+          description: Not Found
+    put:
+      tags:
+        - inventory
+      summary: Update inventory part (mechanic only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: inventory_id
+          required: true
+          type: integer
+        - in: body
+          name: part
+          required: true
+          schema:
+            $ref: "#/definitions/InventoryInput"
+      responses:
+        200:
+          description: Updated
+          schema:
+            $ref: "#/definitions/Inventory"
+    delete:
+      tags:
+        - inventory
+      summary: Delete inventory part (mechanic only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: inventory_id
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Deleted
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+
+  /service-tickets:
+    post:
+      tags:
+        - service-tickets
+      summary: Create a new service ticket (customer)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: body
+          name: ticket
+          required: true
+          schema:
+            $ref: "#/definitions/ServiceTicketInput"
+      responses:
+        201:
+          description: Created
+          schema:
+            $ref: "#/definitions/ServiceTicket"
+    get:
+      tags:
+        - service-tickets
+      summary: List all service tickets
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/ServiceTicket"
+
+  /service-tickets/{ticket_id}:
+    get:
+      tags:
+        - service-tickets
+      summary: Get a service ticket
+      parameters:
+        - in: path
+          name: ticket_id
+          required: true
+          type: integer
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/ServiceTicket"
+        404:
+          description: Not Found
+
+  /service-tickets/{ticket_id}/assign-mechanic/{mechanic_id}:
+    put:
+      tags:
+        - service-tickets
+      summary: Assign a mechanic to a ticket (mechanic only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: ticket_id
+          required: true
+          type: integer
+        - in: path
+          name: mechanic_id
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Updated
+          schema:
+            $ref: "#/definitions/ServiceTicket"
+
+  /service-tickets/{ticket_id}/remove-mechanic/{mechanic_id}:
+    put:
+      tags:
+        - service-tickets
+      summary: Remove a mechanic from a ticket (mechanic only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: ticket_id
+          required: true
+          type: integer
+        - in: path
+          name: mechanic_id
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Updated
+          schema:
+            $ref: "#/definitions/ServiceTicket"
+
+  /service-tickets/{ticket_id}/edit:
+    put:
+      tags:
+        - service-tickets
+      summary: Edit a service ticket's mechanics list (mechanic only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: ticket_id
+          required: true
+          type: integer
+        - in: body
+          name: edits
+          required: true
+          schema:
+            $ref: "#/definitions/EditServiceTicket"
+      responses:
+        200:
+          description: Updated
+          schema:
+            $ref: "#/definitions/ServiceTicket"
+
+  /service-tickets/{ticket_id}/add-part/{inventory_id}:
+    put:
+      tags:
+        - service-tickets
+      summary: Add an inventory part to a ticket (mechanic only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: ticket_id
+          required: true
+          type: integer
+        - in: path
+          name: inventory_id
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Updated
+          schema:
+            $ref: "#/definitions/ServiceTicket"
+
+definitions:
+  LoginCredentials:
+    type: object
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+      - email
+      - password
+
+  LoginResponse:
+    type: object
+    properties:
+      status:
+        type: string
+      token:
+        type: string
+
+  Customer:
+    type: object
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      email:
+        type: string
+      phone:
+        type: string
+
+  CustomerInput:
+    type: object
+    properties:
+      name:
+        type: string
+      email:
+        type: string
+      phone:
+        type: string
+      password:
+        type: string
+    required:
+      - name
+      - email
+      - phone
+      - password
+
+  Mechanic:
+    type: object
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      email:
+        type: string
+      phone:
+        type: string
+      salary:
+        type: number
+
+  MechanicInput:
+    type: object
+    properties:
+      name:
+        type: string
+      email:
+        type: string
+      phone:
+        type: string
+      salary:
+        type: number
+      password:
+        type: string
+    required:
+      - name
+      - email
+      - phone
+      - salary
+      - password
+
+  Inventory:
+    type: object
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
+
+  InventoryInput:
+    type: object
+    properties:
+      name:
+        type: string
+      price:
+        type: number
+    required:
+      - name
+      - price
+
+  ServiceTicket:
+    type: object
+    properties:
+      id:
+        type: integer
+      customer_id:
+        type: integer
+      service_date:
+        type: string
+      issue_description:
+        type: string
+      vin:
+        type: string
+      mechanics:
+        type: array
+        items:
+          $ref: "#/definitions/Mechanic"
+      parts:
+        type: array
+        items:
+          $ref: "#/definitions/Inventory"
+
+  ServiceTicketInput:
+    type: object
+    properties:
+      service_date:
+        type: string
+      issue_description:
+        type: string
+      vin:
+        type: string
+    required:
+      - service_date
+      - issue_description
+      - vin
+
+  EditServiceTicket:
+    type: object
+    properties:
+      add_mechanic_ids:
+        type: array
+        items:
+          type: integer
+      remove_mechanic_ids:
+        type: array
+        items:
+          type: integer
+    additionalProperties: false

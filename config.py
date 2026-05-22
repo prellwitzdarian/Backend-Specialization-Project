@@ -5,7 +5,7 @@ class DevelopmentConfig:
     DEBUG = True
     CACHE_TYPE = 'SimpleCache'
     CACHE_DEFAULT_TIMEOUT = 300
-    RATELIMIT_DEFAULT = ['200 per day', '50 per hour']
+    RATELIMIT_DEFAULT = '200 per day;50 per hour'
 
 class TestingConfig:
     SECRET_KEY = 'test-secret'
@@ -14,7 +14,7 @@ class TestingConfig:
     TESTING = True
     CACHE_TYPE = 'SimpleCache'
     CACHE_DEFAULT_TIMEOUT = 300
-    RATELIMIT_DEFAULT = ['1000 per day']
+    RATELIMIT_DEFAULT = '1000 per day'
 
 class ProductionConfig:
     SECRET_KEY = 'production-secret'
@@ -22,5 +22,10 @@ class ProductionConfig:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     CACHE_TYPE = 'SimpleCache'
     CACHE_DEFAULT_TIMEOUT = 300
-    RATELIMIT_DEFAULT = ['200 per day', '50 per hour']
+    RATELIMIT_DEFAULT = '200 per day;50 per hour'
+
+class TestingConfig:
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///testing.db'
+    DEBUG = True
+    CACHE_TYPE = 'SimpleCache'
     

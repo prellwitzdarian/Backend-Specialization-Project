@@ -4,7 +4,7 @@ from sqlalchemy import select
 from app.models import Customers, Service_tickets, db
 from app.extensions import limiter, cache
 from app.utils.util import encode_token, token_required
-from .schemas import customer_schema, customers_schema, customer_load_schema, login_schema
+from .schemas import customer_schema, customers_schema, customer_load_schema, customer_update_schema, login_schema
 from . import customers_bp
 from app.blueprints.service_tickets.schemas import service_tickets_schema
 
@@ -83,7 +83,7 @@ def update_customer(token_customer_id, customer_id):
         return jsonify({'error': 'Customer not found.'}), 404
 
     try:
-        customer_data = customer_load_schema.load(request.json)
+        customer_data = customer_update_schema.load(request.json)
     except ValidationError as e:
         return jsonify(e.messages), 400
 

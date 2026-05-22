@@ -4,7 +4,7 @@ from app.models import Inventory
 class InventorySchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Inventory
-        load_instance = True
+        load_instance = False
         include_fk = True
         exclude = ('service_tickets',)
 

@@ -5,10 +5,10 @@ from app.models import Service_tickets
 class ServiceTicketSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Service_tickets
-        load_instance = True
+        load_instance = False
         include_fk = True
 
-service_ticket_schema = ServiceTicketSchema()
+service_ticket_schema = ServiceTicketSchema(partial=True)
 service_tickets_schema = ServiceTicketSchema(many=True)
 
 
