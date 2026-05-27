@@ -1,21 +1,12 @@
 import os
 from app import create_app
 from app.extensions import db
+from config import ProductionConfig
 
-# Choose config from environment, default to DevelopmentConfig to avoid
-# import-time failures when production environment variables (like a DB URI)
-# are not set on the host.
-config_name = os.environ.get('FLASK_CONFIG', 'DevelopmentConfig')
-app = create_app(config_name)
+app = create_app(ProductionConfig)
 
 if __name__ == '__main__':
-    # Only reset/create the database in non-production modes to avoid
-    # accidentally wiping a production database.
-    if config_name != 'ProductionConfig':
-        with app.app_context():
-            db.drop_all()
-            db.create_all()
-
-    app.run(debug=(config_name == 'DevelopmentConfig'))
+    with app.app_context():
+        db.create_all()
 
 # For Gunicorn use: gunicorn flask_app:app

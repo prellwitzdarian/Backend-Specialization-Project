@@ -1,8 +1,14 @@
 import os
 
 class ProductionConfig:
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'production-secret'
     SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
-    CACHE_TYPE = "SimpleCache"
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    DEBUG = False
+    TESTING = False
+    CACHE_TYPE = 'SimpleCache'
+    CACHE_DEFAULT_TIMEOUT = 300
+    RATELIMIT_DEFAULT = '200 per day;50 per hour'
 
 
 class DevelopmentConfig:
@@ -14,6 +20,7 @@ class DevelopmentConfig:
     CACHE_DEFAULT_TIMEOUT = 300
     RATELIMIT_DEFAULT = '200 per day;50 per hour'
 
+
 class TestingConfig:
     SECRET_KEY = 'test-secret'
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
@@ -23,11 +30,3 @@ class TestingConfig:
     CACHE_DEFAULT_TIMEOUT = 300
     RATELIMIT_DEFAULT = '1000 per day'
 
-class ProductionConfig:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'production-secret'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    CACHE_TYPE = 'SimpleCache'
-    CACHE_DEFAULT_TIMEOUT = 300
-    RATELIMIT_DEFAULT = '200 per day;50 per hour'
-    

@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask
 from .extensions import db, ma, limiter, cache
 try:
@@ -16,9 +18,16 @@ try:
 except Exception:
     swaggerui_blueprint = None
 
-def create_app(config_name):
+def create_app(config=None):
     app = Flask(__name__)
-    app.config.from_object(f'config.{config_name}')
+
+    if config is None:
+        config_name = os.environ.get('FLASK_CONFIG', 'DevelopmentConfig')
+        app.config.from_object(f'config.{config_name}')
+    elif isinstance(config, str):
+        app.config.from_object(f'config.{config}')
+    else:
+        app.config.from_object(config)
 
     db.init_app(app)
     ma.init_app(app)
