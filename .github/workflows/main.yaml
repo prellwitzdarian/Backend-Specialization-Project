@@ -62,6 +62,6 @@ jobs:
         uses: renderinc/github-action@v1
         with:
           apiKey: ${{ secrets.RENDER_API_KEY }}
-          serviceId: ${{ secrets.RENDER_SERVICE_ID }}
+          serviceId: ${{ secrets.SERVICE_ID }}
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           autoDeploy: true
